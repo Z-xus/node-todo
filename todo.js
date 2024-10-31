@@ -46,20 +46,44 @@ async function listTasks() {
   }
 }
 
+async function deleteTask(id) {
+  const tasks = await readTasks();
+  newTasks = tasks.filter((t) => t.id !== id);
+  await writeTasks(newTasks);
+  if (tasks.length === newTasks.length) {
+    throw new Error(`Task ${id} not found`);
+  }
+  console.log(`Task ${id} deleted`);
+}
+
 (async () => {
-  const action = process.argv[2];
-  const taskDesc = process.argv[3];
+  const action = process.argv[2] || "help";
 
   try {
     switch (action) {
       case "add":
+        const taskDesc = process.argv[3];
         await createTask(taskDesc);
         break;
       case "ls":
         await listTasks();
         break;
+      case "del":
+        const taskId = process.argv[3];
+        await deleteTask(parseInt(taskId));
+        break;
+      case "help":
+        console.log(`
+        Usage:
+        $ todo add "Task description"
+        $ todo ls
+        $ todo del taskId
+        `);
+        break;
       default:
-        throw new Error(`Unknown action: ${action}`);
+        throw new Error(
+          `Unknown action: ${action}\n Use 'todo help' for usage`,
+        );
     }
   } catch (err) {
     console.error(err.message);
